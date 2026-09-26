@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: cybershield-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+  ml-service:
+    build: ./ml-service
+    container_name: cybershield-ml-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: cybershield-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/cybershield
+      - JWT_SECRET=cybershield_ai_jwt_secret_key_2026
+      - ML_SERVICE_URL=http://ml-service:8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - CLIENT_URL=http://localhost:3000
+    depends_on:
+      - mongodb
+      - ml-service
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: cybershield-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=/api
+      - VITE_SOCKET_URL=/
+    depends_on:
+      - backend
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+networks:
+  cybershield-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
