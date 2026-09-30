@@ -1,10 +1,11 @@
 server {
-    listen 80;
+    listen ${PORT};
     server_name localhost;
 
     root /usr/share/nginx/html;
     index index.html index.htm;
 
+    # Frontend
     location / {
         try_files $uri $uri/ /index.html;
     }
@@ -34,6 +35,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Error Page
     error_page 500 502 503 504 /5x.html;
 
     location = /5x.html {
