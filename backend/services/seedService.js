@@ -7,17 +7,20 @@ const Alert = require('../models/Alert');
 const seedInitialData = async () => {
   try {
     const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('Seeding default SOC users...');
+    // Check if Pradnya Pagale admin user exists
+    const adminUser = await User.findOne({ email: 'pradnyapagale7654@gmail.com' });
+
+    if (!adminUser) {
+      console.log('Seeding Pradnya Pagale admin user...');
       const hashedPassword = await bcrypt.hash('password123', 10);
       
       await User.create([
-        { name: 'Pradn (Admin)', email: 'admin@cybershield.ai', password: hashedPassword, role: 'Admin' },
-        { name: 'Pradn SOC Analyst', email: 'pradn@cybershield.ai', password: hashedPassword, role: 'Admin' },
+        { name: 'Pradnya Pagale (Admin)', email: 'pradnyapagale7654@gmail.com', password: hashedPassword, role: 'Admin' },
+        { name: 'SOC Administrator', email: 'admin@cybershield.ai', password: hashedPassword, role: 'Admin' },
         { name: 'Lead Security Analyst', email: 'analyst@cybershield.ai', password: hashedPassword, role: 'Analyst' },
         { name: 'Security Viewer', email: 'viewer@cybershield.ai', password: hashedPassword, role: 'Viewer' }
       ]);
-      console.log('Default users created (admin@cybershield.ai / pradn@cybershield.ai - Admin role).');
+      console.log('Admin user created successfully (pradnyapagale7654@gmail.com / password123).');
     }
 
     const eventCount = await NetworkEvent.countDocuments();

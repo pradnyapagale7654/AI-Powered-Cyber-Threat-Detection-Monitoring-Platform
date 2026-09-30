@@ -21,20 +21,35 @@ const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PATCH', 'DELETE']
-  }
-});
 
-app.use(cors());
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',').map(u => u.trim()) 
+  : ['http://localhost:3000', 'http://localhost:5173'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Permissive CORS for Railway deployment flexibility
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health Check
+// Health Check Endpoint for Railway / Docker
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'CyberShield AI Backend Server', timestamp: new Date() });
+  res.json({ 
+    status: 'ok', 
+    service: 'CyberShield AI Backend Server', 
+    timestamp: new Date() 
+  });
 });
 
 // API Routes
@@ -56,15 +71,24 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0';
 
 const startServer = async () => {
   await connectDB();
   await seedInitialData();
+  
+  const io = socketIo(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PATCH', 'DELETE']
+    }
+  });
+
   initSocketIO(io);
 
-  server.listen(PORT, () => {
+  server.listen(PORT, HOST, () => {
     console.log(`====================================================`);
-    console.log(`🛡️ CyberShield AI Backend Server running on port ${PORT}`);
+    console.log(`🛡️ CyberShield AI Backend Server running on http://${HOST}:${PORT}`);
     console.log(`====================================================`);
   });
 };
