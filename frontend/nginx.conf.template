@@ -1,5 +1,5 @@
 server {
-    listen ${PORT};
+    listen 80;
     server_name localhost;
 
     root /usr/share/nginx/html;
@@ -21,7 +21,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # WebSocket Proxy
+    # WebSocket / Socket.IO Proxy
     location /socket.io/ {
         proxy_pass ${BACKEND_URL}/socket.io/;
         proxy_http_version 1.1;
